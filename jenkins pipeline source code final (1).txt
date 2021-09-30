@@ -1,48 +1,36 @@
 def devteamemail = "devteam@simplilearn.com"
 def manageremail = "devteam@simplilearn.com"
-def manageremail = ""
+def   enviroment = ""
 
 node('master'){
 
-    try {
-        stage('compilation'){
+        stage('Compilation'){
             checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'git', url: 'https://github.com/dasharathsaibane/MavenBuild.git']]])
         }
-        
-		
-		stage('Test'){
-            sh label: '', script: 'mvn clean install'
+    
+    
+        stage('Test'){
+            sh 'mvn clean install'
         }
 		
         echo """
-             $JOB_NAME-build # $BUILD_NUMBER - $NODE_NAME:
-             Check console output at $BUILD_URL to Approve Devlopment.
+          $JOB_NAME-build # $BUILD_NUMBER - $NODE_NAME:
+          Check console output at $BUILD_URL to Approve Devlopment.
         """
 		
         //emailext body: '''please approve deployment
-        //      ${BUILD_URL}''', subject: 'please approve deployment ${BUILD_NUMBER}', to: 'dasharathsaibane@gmail.com'
+        //    ${BUILD_URL}''', subject: 'please approve deployment ${BUILD_NUMBER}', to: 'dasharathsaibane@gmail.com'
 		
 		environment = input message: 'deploy', parametrs: [choice(choice:['QA', 'UAT'], description: '', name: 'environment')]
-
-        stage('deployment'){
-		    echo "deployment started on ${environment} !!!!"
-			if ("${environment}" == "QA"){
-			     deploy adapters: [tomcat9(credentialsId: '65e30b03-6289-4fe2-908a-4b54cd5435b6', path: '', url: 'localhost:8082')], contextPath: 'simplilearnproject', war: 'target/*.war'
+    
+        stage('Deployment'){
+          echo "deployment started on ${environment} !!!!"
+		  if ("${environment}" == "QA"){
+			     deploy adapters: [tomcat9(credentialsId: 'tomcat', path: '', url: 'https://localhost:8080')], contextPath: 'simplilearnproject', war: 'target/*war'
      		}
             if ("${environment}" == "UAT"){
-			    deploy adapters: [tomcat9(credentialsId: '65e30b03-6289-4fe2-908a-4b54cd5435b6', path: '', url: 'localhost:8082')], contextPath: 'simplilearnproject', war: 'target/*.war'
+			  deploy adapters: [tomcat9(credentialsId: 'tomcat', path: '', url: 'https://localhost:8080')], contextPath: 'simplilearnproject', war: 'target/*war'
 			}
 		
-		}	
-	}
-    catch (exception e){
-        echo e.toString()
-        currentbuild.result = "FAILURE"
-        echo "jenkins pipeline failed !! chech logs" 
+	    }
     }
-    fanally{
-        echo"jenkins job status for build URL ${BUILD_URL}: ${currentbuild.result}"	
-		//emailext body: '''jenkins job for status for build URL ${BUILD_URL}: ${currentbuild.result} ''', subject: 'jenkins build status ${BUILD_NUMBER}',to: 'dasharathsaibane@gmail.com'
-	}
-}	
- 			
