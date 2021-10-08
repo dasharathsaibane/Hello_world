@@ -4,6 +4,7 @@ def   enviroment = ""
 
 node('master'){
 
+    try {
         stage('Compilation'){
             checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: 'git', url: 'https://github.com/dasharathsaibane/MavenBuild.git']]])
         }
@@ -34,3 +35,13 @@ node('master'){
 		
 	    }
     }
+    catch (exception e){
+        echo e.toString()
+        currentbuild.result = "FAILURE"
+        echo "jenkins pipeline failed !! chech logs" 
+    }
+    fanally{
+        echo"jenkins job status for build URL ${BUILD_URL}: ${currentbuild.result}"	
+		//emailext body: '''jenkins job for status for build URL ${BUILD_URL}: ${currentbuild.result} ''', subject: 'jenkins build status ${BUILD_NUMBER}',to: 'dasharathsaibane@gmail.com'
+    }
+}	 
